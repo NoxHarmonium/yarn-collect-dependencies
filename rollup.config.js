@@ -1,4 +1,5 @@
 import json from "@rollup/plugin-json";
+import shebang from "rollup-plugin-add-shebang";
 import { terser } from "rollup-plugin-terser";
 import typescript from "rollup-plugin-typescript2";
 import pkg from "./package.json";
@@ -29,5 +30,8 @@ export default {
       typescript: require("typescript"),
     }),
     terser(),
+    shebang({
+      include: "lib/index*.js",
+    }),
   ],
 };

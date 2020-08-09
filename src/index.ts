@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import cliFactory from "cac";
 import packageJson from "../package.json";
 import {
