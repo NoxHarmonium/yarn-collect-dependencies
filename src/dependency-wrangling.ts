@@ -149,7 +149,15 @@ export const installDependencies = (
     console.log(`Executing yarn install...`);
     const result = spawnSync(
       "yarn",
-      ["install", "--production", "--force", "--modules-folder", stagingPath],
+      [
+        "install",
+        "--production",
+        "--pure-lockfile",
+        "--no-bin-links",
+        "--force",
+        "--modules-folder",
+        stagingPath,
+      ],
       {
         cwd: absolutePackagePath,
       }
