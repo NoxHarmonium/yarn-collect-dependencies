@@ -1,0 +1,19 @@
+{
+  "name": "b",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "a": "1.0.0"
+  },
+  "files": [
+    "/lib"
+  ],
+  "devDependencies": {
+    "@types/node": "^14.0.27"
+  }
+}
