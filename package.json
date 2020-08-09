@@ -1,7 +1,7 @@
 {
   "name": "yarn-collect-dependencies",
   "description": "Collects dependencies for deployable artefacts in a Yarn workspaces based monorepo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "lib/index.cjs.js",
   "module": "lib/index.js",
   "typings": "lib/src/index.d.ts",
