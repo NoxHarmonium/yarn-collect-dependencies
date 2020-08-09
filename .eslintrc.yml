@@ -1,0 +1,25 @@
+env:
+  browser: false
+  node: true
+  es6: true
+  jest: true
+parser: "@typescript-eslint/parser"
+plugins:
+  - "@typescript-eslint"
+  - prettier
+  - import
+extends:
+  - "eslint:recommended"
+  - "plugin:@typescript-eslint/recommended"
+  - "plugin:prettier/recommended"
+  - "plugin:import/errors"
+  - "plugin:import/warnings"
+  - "plugin:import/typescript"
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+rules:
+  "import/order":
+    - error
+    - alphabetize:
+        order: asc
