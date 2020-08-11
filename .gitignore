@@ -120,3 +120,6 @@ deps/
 # VS Code folders
 .history
 .vscode
+
+# direnv
+.envrc

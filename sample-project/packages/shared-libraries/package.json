@@ -1,5 +1,5 @@
 {
-  "name": "a",
+  "name": "shared-libraries",
   "version": "1.0.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -8,7 +8,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "dedent": "^0.7.0"
+    "aws-sdk": "^2.730.0",
+    "axios": "^0.19.2",
+    "dedent": "^0.7.0",
+    "lodash": "^4.17.19",
+    "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@types/dedent": "^0.7.0",

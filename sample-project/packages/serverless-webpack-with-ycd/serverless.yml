@@ -1,0 +1,101 @@
+service:
+  name: serverless-webpack-with-ycd
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${self:custom.region}
+  stage: ${self:custom.stage}
+  endpointType: regional
+  memorySize: 1024
+  timeout: 29
+
+plugins:
+  - serverless-webpack
+
+layers:
+  dependencies:
+    path: ./layers/dependencies
+
+functions:
+  randomHandler:
+    handler: src/index.handler
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+  randomHandler2:
+    handler: src/index.handler2
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+  randomHandler3:
+    handler: src/index.handler3
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+  randomHandler4:
+    handler: src/index.handler4
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+  randomHandler5:
+    handler: src/index.handler5
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+  randomHandler6:
+    handler: src/index.handler6
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+  randomHandler7:
+    handler: src/index.handler7
+    layers:
+      - Ref: DependenciesLambdaLayer
+    events:
+      - http:
+          path: v1/handler
+          method: get
+
+package:
+  excludeDevDependencies: false
+  individually: ${strToBool(${env:PACKAGE_INDIVIDUAL, "false"})}
+configValidationMode: error
+
+custom:
+  stage: ${opt:stage, env:STAGE, "dev"}
+  region: ${opt:region, env:AWS_REGION, "ap-southeast-2"}
+  webpack:
+    webpackConfig: ./webpack.config.js
+    packager: yarn
+    includeModules: false
+  cors:
+    origins:
+      - "*"
+    headers:
+      - Content-Type
+      - X-Amz-Date
+      - Authorization
+      - X-Api-Key
+      - X-Amz-Security-Token
+    allowCredentials: false
+  responseParameters:
+    method.response.header.Content-Type: integration.response.header.Content-Type

@@ -1,0 +1,36 @@
+{
+  "name": "serverless-webpack-include-modules",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "sls package --verbose || echo 'Expected failure due to lack of Yarn workspaces support in serverless-webpack'",
+    "start": "node dist/index.js",
+    "collect-dependencies": "yarn install --production --modules-folder ./deps"
+  },
+  "dependencies": {
+    "fp-ts": "^2.8.1",
+    "io-ts": "^2.2.9",
+    "moment": "^2.27.0",
+    "monocle-ts": "^2.3.3",
+    "newtype-ts": "^0.3.4",
+    "other-shared-libraries": "1.0.0",
+    "rxjs": "^6.6.2",
+    "shared-libraries": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.59",
+    "@types/node": "^14.0.27",
+    "aws-lambda": "^1.0.6",
+    "fork-ts-checker-webpack-plugin": "^5.0.14",
+    "serverless": "^1.78.1",
+    "serverless-webpack": "^5.3.3",
+    "ts-loader": "^8.0.2",
+    "typescript": "^3.9.7",
+    "webpack": "^4.44.1",
+    "webpack-node-externals": "^2.5.1"
+  },
+  "files": [
+    "/dist"
+  ]
+}

@@ -11,8 +11,10 @@
   },
   "private": true,
   "workspaces": [
-    "packages/a",
-    "packages/b",
-    "packages/c"
+    "packages/shared-libraries",
+    "packages/other-shared-libraries",
+    "packages/serverless-webpack-with-ycd",
+    "packages/serverless-webpack-include-modules",
+    "packages/serverless-webpack-exclude-modules"
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "declaration": false /* Generates corresponding '.d.ts' file. */,
+    "outDir": "./dist" /* Redirect output structure to the directory. */,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "strict": true,
+    "target": "es5",
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "stripInternal": true,
+    "lib": ["es2019"],
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "importsNotUsedAsValues": "error"
+  },
+  "include": ["./src/**/*"]
+}
