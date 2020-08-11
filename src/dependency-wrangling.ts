@@ -40,7 +40,7 @@ const packPackage = (rootDir: string, packagePath: string): string => {
     const absolutePackagePath = join(rootDir, packagePath);
     console.log(`Calling yarn pack on [${absolutePackagePath}]`);
     // TODO: Why is the archive corrupt if "files" is not set in package.json?
-    const result = spawnSync("yarn", ["pack"], {
+    const result = spawnSync("yarn", ["pack", "--non-interactive"], {
       cwd: absolutePackagePath,
     });
 
@@ -80,9 +80,13 @@ const deleteSymlinks = (
  */
 export const getWorkspaceInfo = (rootDir: string): YarnWorkspaceInfo => {
   try {
-    const result = spawnSync("yarn", ["--silent", "workspaces", "info"], {
-      cwd: rootDir,
-    });
+    const result = spawnSync(
+      "yarn",
+      ["--non-interactive", "--silent", "workspaces", "info"],
+      {
+        cwd: rootDir,
+      }
+    );
 
     if (result.error !== undefined) {
       throw new Error("Child process indicated error");
@@ -151,6 +155,7 @@ export const installDependencies = (
       "yarn",
       [
         "install",
+        "--non-interactive",
         "--production",
         "--pure-lockfile",
         "--no-bin-links",
