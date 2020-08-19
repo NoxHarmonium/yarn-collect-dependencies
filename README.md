@@ -38,7 +38,7 @@ have a monorepo that contains Serverless Framework
 projects that deploy to a cloud environment
 and that also import functionality from other packages in the monorepo.
 
-If your monorepo deploys packages to NPM (e.g. [Babel](https://github.com/babel/babel/blob/master/doc/design/monorepo.md)) this project is probably not useful to you.
+If your monorepo deploys packages to NPM (e.g. [Babel's monorepo](https://github.com/babel/babel/blob/master/doc/design/monorepo.md)) this project is probably not useful to you.
 
 If you import source code between packages directly you won't need this either.
 This is only useful if you want to enforce package level encapsulation
@@ -54,11 +54,11 @@ with deployable Serverless projects.
 
 The following packages demonstrate packaging using [serverless-webpack](https://github.com/serverless-heaven/serverless-webpack)
 
-| Package                                     | includeModules | Uses yarn-collect-dependencies | Works? |
-| ------------------------------------------- | -------------- | ------------------------------ | ------ |
-| packages/serverless-webpack-exclude-modules | `false`        | `false`                        | Yes    |
-| packages/serverless-webpack-include-modules | `true`         | `false`                        | No     |
-| packages/serverless-webpack-with-ycd        | `false`        | `true`                         | Yes    |
+| Package                                     | includeModules? | yarn-collect-dependencies? | webpack-node-externals? | Works? |
+| ------------------------------------------- | --------------- | -------------------------- | ----------------------- | ------ |
+| packages/serverless-webpack-exclude-modules | `false`         | No                         | No                      | Yes    |
+| packages/serverless-webpack-include-modules | `true`          | No                         | Yes                     | No     |
+| packages/serverless-webpack-with-ycd        | `false`         | Yes                        | Yes                     | Yes    |
 
 #### packages/serverless-webpack-exclude-modules
 
@@ -87,7 +87,11 @@ This package demonstrates a configuration where `serverless-webpack`
 manages modules.
 
 This does not currently work because the dependency bundler
-in `serverless-webpack` does not currently support workspaces.
+in `serverless-webpack` does not currently support Yarn workspaces.
+
+It uses `yarn` to install the dependencies to a directory
+but it does not resolve the symlinks so the workspace
+modules are missing in the bundle.
 
 See:
 
@@ -109,7 +113,7 @@ that is shared between lambda functions.
 
 ##### Advantages
 
-- Layer is only deployed when dependencies change and function bundle size is small saving deployment time
+- Layer is only deployed when dependencies change and function bundle size is small, saving deployment time
 - Modules only processed once and shared between functions
 
 ##### Disadvantages
@@ -125,10 +129,10 @@ some benchmarks for building the packages outlined above.
 Here are some results prepared earlier:
 
 ```
-serverless-webpack-with-ycd_individual x 0.10 ops/sec ±2.34% (5 runs sampled)
-serverless-webpack-with-ycd_combined x 0.13 ops/sec ±1.11% (5 runs sampled)
-serverless-webpack-exclude-modules_individual x 0.05 ops/sec ±2.63% (5 runs sampled)
 serverless-webpack-exclude-modules_combined x 0.21 ops/sec ±5.69% (5 runs sampled)
+serverless-webpack-with-ycd_combined x 0.13 ops/sec ±1.11% (5 runs sampled)
+serverless-webpack-with-ycd_individual x 0.10 ops/sec ±2.34% (5 runs sampled)
+serverless-webpack-exclude-modules_individual x 0.05 ops/sec ±2.63% (5 runs sampled)
 ```
 
 I predict the performance benefit of using yarn-collect-dependencies
@@ -145,14 +149,15 @@ I am working on creating a more complex sample project.
 
 For a given package 'deployable-package-a':
 
-1. It uses Yarn to install the monorepo's dependencies into a "staging" directory
-   - Yarn does not seem to be able to install a particular module's dependencies into a folder with `--modules-folder`.
+1. It uses Yarn Workspaces to determine which packages 'deployable-package-a' depends on
+2. It uses Yarn to install the monorepo's dependencies into a "staging" directory
+   - Yarn does not seem to be able to install a particular workspace package's dependencies into a folder with `--modules-folder`
    - It puts all the dependencies for a project into the "staging" folder with symlinks that point to each package in the mono repo
-2. It uses Yarn Workspaces to determine which packages 'deployable-package-a' depends on
 3. It deletes any symlinks that are not actually used
 4. It replaces the symlinks that Yarn puts into the "staging" directory with the actual build output of the packages pointed to by the symlinks
    - This is important because we don't want to package up anything extraneous in the packages directory like source code or their modules
-5. You can then include the "staging" directory directly into your deployment bundle as the node modules folder
+
+You can then include the "staging" directory directly into your deployment bundle as the node modules folder
 
 ## Coming Soon
 

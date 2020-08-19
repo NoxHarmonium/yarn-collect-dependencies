@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "clean": "rimraf layers/dependencies .webpack .serverless",
     "build": "sls package --verbose",
     "start": "node dist/index.js",
     "collect-dependencies": "yarn install --production --modules-folder ./deps"

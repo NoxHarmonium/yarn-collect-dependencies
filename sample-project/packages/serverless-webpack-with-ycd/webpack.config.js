@@ -3,7 +3,7 @@
 const path = require("path");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const slsw = require("serverless-webpack");
-const nodeExternals = require("webpack-node-externals");
+const { ycdNodeExternals } = require("yarn-collect-dependencies");
 
 const isLocal = slsw.lib.webpack.isLocal;
 
@@ -11,11 +11,7 @@ module.exports = {
   mode: isLocal ? "development" : "production",
   entry: slsw.lib.entries,
   devtool: "source-map",
-  externals: [
-    nodeExternals({
-      additionalModuleDirs: ["../../node_modules"],
-    }),
-  ],
+  externals: [ycdNodeExternals()],
   resolve: {
     extensions: [".js", ".jsx", ".json", ".ts", ".tsx"],
   },

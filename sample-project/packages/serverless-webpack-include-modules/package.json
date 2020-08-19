@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "clean": "rimraf .webpack .serverless",
     "build": "sls package --verbose || echo 'Expected failure due to lack of Yarn workspaces support in serverless-webpack'",
     "start": "node dist/index.js",
     "collect-dependencies": "yarn install --production --modules-folder ./deps"

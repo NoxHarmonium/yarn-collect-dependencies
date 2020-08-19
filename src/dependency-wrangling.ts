@@ -1,4 +1,3 @@
-import { spawnSync } from "child_process";
 import { existsSync, readFileSync, unlinkSync, mkdirSync } from "fs";
 import { join } from "path";
 import * as _E from "fp-ts/lib/Either";
@@ -6,6 +5,7 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 import { x as extractTar } from "tar";
 import type { JsonObject, PackageJson } from "type-fest";
 import { yarnWorkspaceInfoCodec, YarnWorkspaceInfo } from "./types";
+import { pack, workspaceInfo, install } from "./yarn";
 
 const getPackName = (absolutePackagePath: string) => {
   const packageJsonRaw = readFileSync(
@@ -15,14 +15,9 @@ const getPackName = (absolutePackagePath: string) => {
   return `${packageJson.name ?? ""}-v${packageJson.version ?? ""}.tgz`;
 };
 
-const parseWorkspaceInfo = (workspaceInfoRaw: string) => {
-  if (workspaceInfoRaw.trim().startsWith("error")) {
-    throw new Error(`Yarn reported an error: ${workspaceInfoRaw}`);
-  }
-
+const parseWorkspaceInfo = (workspaceInfoRaw: JsonObject) => {
   try {
-    const json = JSON.parse(workspaceInfoRaw) as JsonObject;
-    const decoded = yarnWorkspaceInfoCodec.decode(json);
+    const decoded = yarnWorkspaceInfoCodec.decode(workspaceInfoRaw);
     if (_E.isLeft(decoded)) {
       const errors = PathReporter.report(decoded).join(", ");
       throw new Error(
@@ -36,37 +31,24 @@ const parseWorkspaceInfo = (workspaceInfoRaw: string) => {
 };
 
 const packPackage = (rootDir: string, packagePath: string): string => {
-  try {
-    const absolutePackagePath = join(rootDir, packagePath);
-    console.log(`Calling yarn pack on [${absolutePackagePath}]`);
-    // TODO: Why is the archive corrupt if "files" is not set in package.json?
-    const result = spawnSync("yarn", ["pack", "--non-interactive"], {
-      cwd: absolutePackagePath,
-    });
+  const absolutePackagePath = join(rootDir, packagePath);
+  pack(absolutePackagePath);
 
-    if (result.error !== undefined) {
-      throw new Error("Child process indicated error");
-    }
-
-    const packName = getPackName(absolutePackagePath);
-    const fullPackPath = join(absolutePackagePath, packName);
-    if (!existsSync(fullPackPath)) {
-      throw new Error(
-        `The pack file [${packName}] does not exist. There may have been an issue packing the package`
-      );
-    }
-
-    return fullPackPath;
-  } catch (error) {
-    throw new Error(`Error packing package: ${error.message}`);
+  const packName = getPackName(absolutePackagePath);
+  const fullPackPath = join(absolutePackagePath, packName);
+  if (!existsSync(fullPackPath)) {
+    throw new Error(
+      `The pack file [${packName}] does not exist. There may have been an issue packing the package`
+    );
   }
+
+  return fullPackPath;
 };
 
-const deleteSymlinks = (
+export const deleteSymlinks = (
   workspaceInfo: YarnWorkspaceInfo,
   stagingPath: string
-) => {
-  console.log(`Deleting existing symlinks...`);
+): void => {
   const allPackages = Object.keys(workspaceInfo);
   allPackages.forEach((packageName) =>
     unlinkSync(join(stagingPath, packageName))
@@ -79,24 +61,8 @@ const deleteSymlinks = (
  * @param rootDir the directory where the root package.json for the Yarn workspace resides
  */
 export const getWorkspaceInfo = (rootDir: string): YarnWorkspaceInfo => {
-  try {
-    const result = spawnSync(
-      "yarn",
-      ["--non-interactive", "--silent", "workspaces", "info"],
-      {
-        cwd: rootDir,
-      }
-    );
-
-    if (result.error !== undefined) {
-      throw new Error("Child process indicated error");
-    }
-
-    const workspaceInfoRaw = result.stdout.toString();
-    return parseWorkspaceInfo(workspaceInfoRaw);
-  } catch (error) {
-    throw new Error(`Error getting workspace info: ${error.message}`);
-  }
+  const workspaceInfoRaw = workspaceInfo(rootDir);
+  return parseWorkspaceInfo(workspaceInfoRaw);
 };
 
 /**
@@ -148,39 +114,13 @@ export const installDependencies = (
   packagePath: string,
   stagingPath: string
 ): void => {
-  try {
-    const absolutePackagePath = join(rootDir, packagePath);
-    console.log(`Executing yarn install...`);
-    const result = spawnSync(
-      "yarn",
-      [
-        "install",
-        "--non-interactive",
-        "--production",
-        "--pure-lockfile",
-        "--no-bin-links",
-        "--force",
-        "--modules-folder",
-        stagingPath,
-      ],
-      {
-        cwd: absolutePackagePath,
-      }
-    );
+  const absolutePackagePath = join(rootDir, packagePath);
+  install(absolutePackagePath, stagingPath);
 
-    if (result.error !== undefined) {
-      throw new Error("Child process indicated error");
-    }
-
-    // TODO: Print logs from yarn if verbose enabled or on error
-    if (!existsSync(absolutePackagePath)) {
-      throw new Error(
-        `The staging directory does not exist. There may have been an issue installing the dependencies`
-      );
-    }
-  } catch (error) {
+  // TODO: Print logs from yarn if verbose enabled or on error
+  if (!existsSync(absolutePackagePath)) {
     throw new Error(
-      `Error installing dependencies to staging path: ${error.message}`
+      `The staging directory does not exist. There may have been an issue installing the dependencies`
     );
   }
 };
@@ -202,15 +142,10 @@ export const reifyDependencies = (
   workspaceInfo: YarnWorkspaceInfo,
   dependencies: readonly string[]
 ): void => {
-  deleteSymlinks(workspaceInfo, stagingPath);
   dependencies.forEach((dependencyName) => {
     const dependency = workspaceInfo[dependencyName];
     const targetPath = join(stagingPath, dependencyName);
-    console.log(`Packaging package [${dependencyName}]...`);
     const fullPackPath = packPackage(rootDir, dependency.location);
-    console.log(
-      `Unpacking pack file [${fullPackPath}] to target directory: [${targetPath}]`
-    );
     mkdirSync(targetPath, { recursive: true });
     extractTar({
       file: fullPackPath,

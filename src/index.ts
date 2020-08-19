@@ -1,11 +1,13 @@
-import cliFactory from "cac";
-import packageJson from "../package.json";
+import type { ExternalsFunctionElement } from "webpack";
 import {
   getWorkspaceDependencies,
   getWorkspaceInfo,
   installDependencies,
   reifyDependencies,
+  deleteSymlinks,
 } from "./dependency-wrangling";
+import { getDependencyList } from "./externals";
+import { logStep, SpawnError } from "./utils";
 
 export const collectDependenciesForPackage = (
   packageName: string,
@@ -14,48 +16,44 @@ export const collectDependenciesForPackage = (
 ): void => {
   const workspaceInfo = getWorkspaceInfo(rootDir);
   const root = workspaceInfo[packageName];
-  console.info(
-    `Root package is [${packageName}]. Determining workspace dependencies...`
-  );
-  const dependencies = getWorkspaceDependencies(workspaceInfo, packageName);
-  console.info(`Dependencies to be collected are: [${dependencies}]`);
-  console.info(`Installing dependencies to staging area: [${stagingPath}]`);
-  installDependencies(rootDir, root.location, stagingPath);
-  console.info(`Reifying symlinks for dependencies...`);
-  reifyDependencies(rootDir, stagingPath, workspaceInfo, dependencies);
+  const totalSteps = 4;
+
+  try {
+    logStep(1, totalSteps, "Determining workspace dependencies...");
+    const dependencies = getWorkspaceDependencies(workspaceInfo, packageName);
+
+    logStep(2, totalSteps, "Installing dependencies to staging directory...");
+    installDependencies(rootDir, root.location, stagingPath);
+
+    logStep(3, totalSteps, "Deleting unused symlinks...");
+    deleteSymlinks(workspaceInfo, stagingPath);
+
+    logStep(4, totalSteps, `Reifying remaining symlinks...`);
+    reifyDependencies(rootDir, stagingPath, workspaceInfo, dependencies);
+  } catch (error) {
+    if (error instanceof SpawnError) {
+      console.error(
+        "Error executing yarn",
+        error.stdout,
+        error.stderr,
+        error.causedBy
+      );
+    }
+    throw error;
+  }
 };
 
-const cli = cliFactory(packageJson.name);
-
-cli
-  .command(
-    "collect",
-    "collects dependencies for a package and puts them in a staging folder",
-    { allowUnknownOptions: false, ignoreOptionDefaultValue: true }
-  )
-  .option(
-    "--package-name ",
-    "the name of the workspace package to collect dependencies for",
-    {}
-  )
-  .option(
-    "--root-dir <root directory>",
-    "path to the root of your workspace (where the root package.json is)"
-  )
-  .option(
-    "--staging-dir <staging directory>",
-    "path to a folder where the collected dependencies will be placed"
-  )
-  .example(
-    (name) =>
-      `${name} collect --package-name my-package --root-dir . --staging-dir ./packages/my-package/.deps`
-  )
-  .action(({ packageName, rootDir, stagingDir }) => {
-    collectDependenciesForPackage(packageName, rootDir, stagingDir);
-  });
-
-cli.version(packageJson.version);
-
-cli.help();
-
-cli.parse();
+export const ycdNodeExternals = (
+  rootDir?: string
+): ExternalsFunctionElement => {
+  const dependencies = new Set(getDependencyList(rootDir ?? "."));
+  return (_, request, callback) => {
+    if (dependencies.has(request)) {
+      console.log(`external: [${request}]`);
+      return callback(null, "commonjs " + request);
+    } else {
+      console.log(`not external: [${request}]`);
+      return callback();
+    }
+  };
+};

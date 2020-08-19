@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "clean": "rimraf layers/dependencies .webpack .serverless",
     "prepare-dependencies": "collect-dependencies collect --package-name serverless-webpack-with-ycd --root-dir ../../ --staging-dir layers/dependencies/nodejs/node_modules",
     "build": "yarn prepare-dependencies && sls package --verbose",
     "start": "node dist/index.js",
@@ -24,6 +25,7 @@
     "@types/node": "^14.0.27",
     "aws-lambda": "^1.0.6",
     "fork-ts-checker-webpack-plugin": "^5.0.14",
+    "rimraf": "^3.0.2",
     "serverless": "^1.78.1",
     "serverless-webpack": "^5.3.3",
     "ts-loader": "^8.0.2",

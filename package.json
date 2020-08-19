@@ -6,11 +6,12 @@
   "module": "lib/index.js",
   "typings": "lib/src/index.d.ts",
   "bin": {
-    "collect-dependencies": "lib/index.cjs.js"
+    "collect-dependencies": "lib/cli.js"
   },
   "license": "MIT",
   "dependencies": {
     "cac": "^6.6.1",
+    "chalk": "^4.1.0",
     "fp-ts": "^2.8.1",
     "io-ts": "^2.2.9",
     "tar": "^6.0.2",
@@ -21,6 +22,7 @@
     "@types/benchmark": "^1.0.33",
     "@types/node": "^14.0.27",
     "@types/tar": "^4.0.3",
+    "@types/webpack": "^4.41.21",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
     "benchmark": "^2.1.4",
@@ -34,6 +36,7 @@
     "rollup-plugin-add-shebang": "^0.3.1",
     "rollup-plugin-terser": "^6.1.0",
     "rollup-plugin-typescript2": "^0.27.2",
+    "source-map-support": "^0.5.19",
     "ts-node": "^8.10.2",
     "tslib": "^2.0.1",
     "typescript": "^3.9.7"
@@ -42,10 +45,10 @@
     "/lib"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -cm",
     "lint": "prettier --check . && eslint src/**",
     "format": "prettier --write .",
-    "test": "yarn build && node lib/index.cjs.js",
+    "test": "yarn build && node -r source-map-support/register lib/cli.js collect --package-name serverless-webpack-with-ycd --root-dir sample-project --staging-dir /tmp/deps",
     "prepare": "yarn build",
     "benchmark": "ts-node -O '{\"module\":\"commonjs\"}' scripts/benchmark.ts"
   }
